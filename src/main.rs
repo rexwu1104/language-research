@@ -1,3 +1,7 @@
+mod file;
+mod token;
+mod lexer;
+
 fn main() {
-    println!("Hello, world!");
+    println!("{:?}", lexer::lex("test.mx"));
 }

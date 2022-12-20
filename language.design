@@ -1,34 +1,41 @@
 # functional
---- first and high level function
-    --- default option in function is `static` and `pure`
---- pure function
-    --- pure function cannot have any 'side effect'
---- side effect
-    --- there have `effect` keyword to define effect state
+- first and high level function
+    - default option in function is `static` and `pure`
+- pure function
+    - pure function cannot have any 'side effect'
+- side effect
+    - there have `effect` keyword to define effect state
 
 ```
 effect IO_effect(io)
 
-fn log format_str %format_args -> Unit IO_effect {
+fn log format_str %format_args -> Unit IO_effect
+where
+    format_str: String
+{
     printf(format_str, %format_args)
 }
 ```
 
 # command and procedure
---- abstract for asm
-    --- command list
---- 4 sentences
-    --- operate, loop, condition branch and non-condition branch
+- abstract for asm
+    - command list
+- 4 sentences
+    - operate, loop, condition branch and non-condition branch
 
 ```
 type Point {
-    x: u16
-    y: u16
+    x: UInt
+    y: UInt
 }
 
 // operate
-fn `+` left right -> Point {
-    left + right
+fn `+` left right -> Point
+where
+    left: Point
+    right: Point
+{
+    default.new (left.x + right.x)  (left.y + right.y)
 }
 
 a = Point.new
@@ -52,6 +59,10 @@ while times != 10 {
 
 for times = 0; 10; ++ {
     printf("hello world")
+}
+
+for number in 0..10 {
+    printf("number %d: %d", number+1, number)
 }
 
 // condition branch
@@ -78,19 +89,19 @@ goto @loop_start
 ```
 
 # OOP
---- object is instance for class
---- class is abstract of things
---- message send by method, signals and data packets
---- encapsulation means you dont need to know how to implement, just need know methods
---- inherit class have porperty and method of the inherited class
---- OOP has two type, base-prototype and base-class
---- base-prototype sometimes use delegate
+- object is instance for class
+- class is abstract of things
+- message send by method, signals and data packets
+- encapsulation means you dont need to know how to implement, just need know methods
+- inherit class have porperty and method of the inherited class
+- OOP has two type, base-prototype and base-class
+- base-prototype sometimes use delegate
 
 ```
 // class
 type Point {
-    x: u32
-    y: u32
+    x: UInt
+    y: UInt
 }
 
 impl Point {
@@ -98,7 +109,10 @@ impl Point {
         default.new
     }
 
-    fn length_by point -> default {
+    fn length_by point -> default
+    where
+        point: Point
+    {
         sqrt((this.x - point.x) ** 2 + (this.y - point.y) ** 2)
     }
 }
@@ -107,7 +121,7 @@ p = Point.new
 p.length_by Point.new 1 1 // sqrt 2
 
 type TDPoint inherit Point {
-    z: u32
+    z: UInt
 }
 
 impl TDPoint {
@@ -115,28 +129,60 @@ impl TDPoint {
         default.new
     }
 
-    fn length_by point -> default {
+    fn length_by point -> default
+    where
+        point: TDPoint
+    {
         sqrt((this.x - point.x) ** 2 + (this.y - point.y) ** 2 + (this.z - point.z) ** 2)
     }
 }
 
-a = Reflect.new Point // Point { x: 0 y: 0 }
+a = Reflect.new "Point" // Point { x: 0 y: 0 }
 ```
 
 # logical
---- professor system will find answer in model
---- automated theorem proving will generate theorem auotmaticlly to expand existing theory
+- professor system will find answer in model
+- automated theorem proving will generate theorem auotmaticlly to expand existing theory
 
 ```
 fn sort array -> default {
     fact ordered =
         | []
-        | [x]
-        | [x, y, %z]: x < y
+        | [_]
+        | [x, y, %z]: x < y && z is ordered
 
     ordered array
 }
 
 a = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
 a = sort a // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+# other
+- import
+- type
+- error handle
+
+```
+// import
+use path.some.package
+
+// type
+// type name always start with upper word
+// Byte, Short, Int, Long
+//    8,    16,  32,   64
+// type has Array, Tuple, HashMap, Unit, Simple Type and Custum Type
+
+// custum type
+type Point {
+    x: Int
+    y: Int
+}
+
+// error handle
+a = 0
+b = "1"
+# a + b {
+    printf("error: Int cannot be add String")
+}
 ```
