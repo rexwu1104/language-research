@@ -1,0 +1,56 @@
+Statement
+    ::= Import_Package
+    ::= Define_Type
+    ::= Define_Function
+
+Import_Package ::= "use" Package_Path
+Package_Path ::= Identifier ("." Identifier)*
+
+Define_Type ::= "type" Generic_Template* Type_Name Type_Block
+Type_Name ::= Identifier
+Type_Block ::= "{" Type_Column* "}"
+Type_Column ::= Identifier ":" Identifier
+
+Define_Function ::= "fn" Generic_Template* Function_Name Function_Paramter ("->" Function_Return_Type)* Function_Type_Setting* Function_Block
+Function_Name
+    ::= Atom
+    ::= Identifier
+Function_Paramter ::= Paramter*
+Function_Return_Type ::= Identifier
+Function_Type_Setting ::= "where" Function_Type_Column+
+Function_Type_column ::= Identifier ":" Identifier
+Function_Block ::= "{" Function_Statement* "}"
+Function_Statement
+    ::= Define_Variable
+    ::= Define_Closure
+    ::= Define_Fact
+    ::= Call_Function
+
+Define_Variable ::= Identifier "=" Value
+Define_Closure ::= Define_Function
+Define_Fact ::= "fact" Identifier ("|" Fact_Check)+
+Call_Function ::= Value Value*
+
+Fact_Check ::= Fact_State (":" Fact_Condition)*
+Fact_State
+    ::= Fact_Array_State
+    ::= Fact_Simple_State
+    ::= Fact_Struct_State
+Fact_Array_State ::= "[" (Paramter ("," Paramter)*)* "]"
+Fact_Simple_State ::= Constant_Value
+Fact_Struct_State ::= Identifier "{" Identifier* "}"
+Fact_Condition ::= Value
+
+Constant_Value
+    ::= String
+    ::= Char
+    ::= Atom
+    ::= Number
+Value
+    ::= Constant_Value
+    ::= Identifier
+    ::= Array
+    ::= Struct
+Array ::= "[" (Value ("," Value)*)* "]"
+Struct ::= Identifier* "{" Struct_Column_Pair* "}"
+Struct_Column_Pair ::= Identifier (":" Value)*

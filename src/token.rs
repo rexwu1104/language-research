@@ -39,7 +39,6 @@ pub fn tokenize(content: String) -> Vec<Token> {
     let mut buffer = String::new();
     let mut line = 0;
     let mut position = (0, 0);
-    // string, atom, char, identifier, symbol, number
 
     let mut string_start = '\0';
     let mut comment_start = false;
@@ -71,7 +70,7 @@ pub fn tokenize(content: String) -> Vec<Token> {
 
         if string_start != '\0' {
             buffer.push(c);
-            // connect string
+            
             if buffer.len() >= 2 && buffer.chars().take(buffer.chars().count() - 1).last() == Some('\\') {}
             else if buffer.len() != 1 && buffer.chars().last() == Some(string_start) {
                 tokens.push(match string_start {
@@ -118,7 +117,7 @@ pub fn tokenize(content: String) -> Vec<Token> {
                     position.0 = position.1;
                     type_num = 2;
                     buffer.clear();
-                } else { type_num = 2 }, // identiifer 2
+                } else { type_num = 2 },
                 '0'..='9' => if type_num != 3 && type_num != 0 {
                     match_type!(type_num, 3,
                     2 => tokens.push(generate_token!(Identifier, line, position, buffer.clone())),
@@ -127,7 +126,7 @@ pub fn tokenize(content: String) -> Vec<Token> {
                     position.0 = position.1;
                     type_num = 3;
                     buffer.clear();
-                } else { type_num = 3 }, // number 3
+                } else { type_num = 3 },
                 '\0'..='\u{20}' | '\u{127}' => continue,
                 _ => if type_num != 4 && type_num != 0 {
                     match_type!(type_num, 4,
@@ -145,7 +144,7 @@ pub fn tokenize(content: String) -> Vec<Token> {
                         type_num = 4;
                         buffer.clear();
                     }
-                } // symbol 4
+                }
             }
 
             buffer.push(c);

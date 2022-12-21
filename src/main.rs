@@ -1,7 +1,9 @@
 mod file;
 mod token;
 mod lexer;
+mod tree;
+mod parser;
 
 fn main() {
-    println!("{:?}", lexer::lex("test.mx"));
+    println!("{:?}", parser::parse(lexer::lex("test.mx")));
 }
