@@ -25,11 +25,19 @@ Function_Statement
     ::= Define_Closure
     ::= Define_Fact
     ::= Call_Function
+    ::= Loop_Use
+    ::= Condition
 
 Define_Variable ::= Identifier "=" Value
 Define_Closure ::= Define_Function
 Define_Fact ::= "fact" Identifier ("|" Fact_Check)+
 Call_Function ::= Value Value*
+Loop_Use
+    ::= For_Loop
+    ::= While_Loop
+    ::= True_Loop
+    ::= Foreach_Loop
+Condition ::= If_Condition Elif_Condition* Else_Condition
 
 Fact_Check ::= Fact_State (":" Fact_Condition)*
 Fact_State
@@ -54,3 +62,24 @@ Value
 Array ::= "[" (Value ("," Value)*)* "]"
 Struct ::= Identifier* "{" Struct_Column_Pair* "}"
 Struct_Column_Pair ::= Identifier (":" Value)*
+
+For_Loop ::= "for" For_Setup_Statement ";" For_Condition_Statement ";" For_Step_Statement "{" For_Statement* "}"
+For_Setup_Statement ::= Define_Variable
+For_Condition_Statement ::= Value
+For_Step_Statement ::= Value
+For_Statement ::= Function_Statement
+
+While_Loop ::= "while" While_Condition_Statement "{" While_Statement* "}"
+While_Condition_Statement ::= Value
+While_Statement ::= Function_Statement
+
+True_Loop ::= "loop" "{" Loop_Statement* "}"
+Loop_Statement ::= Function_Statement
+
+Foreach_Loop ::= "for" Foreach_Loop_Paramter "in" Value "{" For_Statement* "}"
+Foreach_Loop_Paramter ::= Function_Paramter
+
+If_Condition ::= "if" Value "{" Condition_Statement "}"
+Elif_Condition ::= "elif" Value "{" Condition_Statement "}"
+Else_Condition ::= "else" "{" Condition_Statement "}"
+Condition_Statement ::= Function_Statement

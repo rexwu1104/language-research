@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub raw: String,
     pub line: usize,
@@ -6,7 +6,7 @@ pub struct Token {
     pub ty: TokenType
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     Char,
     String,

@@ -1,3 +1,7 @@
+use A.B.C
+
+use D.E.F
+
 type Point {
     x: Int
     y: Int

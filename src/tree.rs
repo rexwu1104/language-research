@@ -1,22 +1,22 @@
 #[derive(Debug)]
 pub enum Statement {
     ImportPackage(PackagePath),
-    DefineType((GenericTemplate, TypeName, TypeBlock)),
-    DefineFunction((GenericTemplate, FunctionName, FunctionParamters, FunctionReturnType, FunctionTypeSetting, FunctionBlock))
+    DefineType(GenericTemplate, TypeName, TypeBlock),
+    DefineFunction(GenericTemplate, FunctionName, FunctionParamters, FunctionReturnType, FunctionTypeSetting, FunctionBlock)
 }
 
 #[derive(Debug)]
-pub struct PackagePath(Vec<Identifier>);
+pub struct PackagePath(pub Vec<Identifier>);
 
 #[derive(Debug)]
-pub struct GenericTemplate(Vec<Identifier>);
+pub struct GenericTemplate(pub Vec<Identifier>);
 pub type TypeName = Identifier;
 
 #[derive(Debug)]
-pub struct TypeBlock(Vec<TypeCloumn>);
+pub struct TypeBlock(pub Vec<TypeCloumn>);
 
 #[derive(Debug)]
-pub struct TypeCloumn(Identifier, Identifier);
+pub struct TypeCloumn(pub Identifier, pub Identifier);
 
 #[derive(Debug)]
 pub enum FunctionName {
@@ -25,31 +25,33 @@ pub enum FunctionName {
 }
 
 #[derive(Debug)]
-pub struct FunctionParamters(Vec<Paramter>);
+pub struct FunctionParamters(pub Vec<Paramter>);
 pub type FunctionReturnType = Identifier;
 
 #[derive(Debug)]
-pub struct FunctionTypeSetting(Vec<FunctionTypeColumn>);
+pub struct FunctionTypeSetting(pub Vec<FunctionTypeColumn>);
 
 #[derive(Debug)]
-pub struct FunctionTypeColumn(Identifier, Identifier);
+pub struct FunctionTypeColumn(pub Identifier, pub Identifier);
 
 #[derive(Debug)]
-pub struct FunctionBlock(Vec<FunctionStatement>);
+pub struct FunctionBlock(pub Vec<FunctionStatement>);
 
 #[derive(Debug)]
 pub enum FunctionStatement {
     DefineVariable(Identifier, Value),
-    DefineClosure((GenericTemplate, FunctionName, FunctionParamters, FunctionReturnType, FunctionTypeSetting, FunctionBlock)),
+    DefineClosure(GenericTemplate, FunctionName, FunctionParamters, FunctionReturnType, FunctionTypeSetting, FunctionBlock),
     DefineFact(Identifier, FactContent),
-    CallFunction(Value, Vec<Value>)
+    CallFunction(Value, Vec<Value>),
+    LoopUse(Box<Loop>),
+    Condition(IfCondition, Vec<IfCondition>, ElseCondition)
 }
 
 #[derive(Debug)]
-pub struct FactContent(Vec<FactCheck>);
+pub struct FactContent(pub Vec<FactCheck>);
 
 #[derive(Debug)]
-pub struct FactCheck(FactState, Option<FactCondition>);
+pub struct FactCheck(pub FactState, pub Option<FactCondition>);
 
 #[derive(Debug)]
 pub enum FactState {
@@ -59,10 +61,10 @@ pub enum FactState {
 }
 
 #[derive(Debug)]
-pub struct ArrayState(Vec<Paramter>);
+pub struct ArrayState(pub Vec<Paramter>);
 
 #[derive(Debug)]
-pub struct StructState(Identifier, Vec<Identifier>);
+pub struct StructState(pub Identifier, pub Vec<Identifier>);
 pub type FactCondition = Value;
 
 #[derive(Debug)]
@@ -82,21 +84,45 @@ pub enum Value {
 }
 
 #[derive(Debug)]
-pub struct Array(Vec<Value>);
+pub struct Array(pub Vec<Value>);
 
 #[derive(Debug)]
-pub struct Struct(Option<Identifier>, Vec<StructColumnPair>);
+pub struct Struct(pub Option<Identifier>, pub Vec<StructColumnPair>);
 
 #[derive(Debug)]
-pub struct StructColumnPair(Identifier, Vec<Value>);
+pub struct StructColumnPair(pub Identifier, pub Vec<Value>);
 
 pub type Identifier = String;
 
 #[derive(Debug)]
-pub struct Paramter(Identifier, ParamterType);
+pub struct Paramter(pub Identifier, pub ParamterType);
 
 #[derive(Debug)]
 pub enum ParamterType {
     Normal,
     Arguments
 }
+
+#[derive(Debug)]
+pub enum Loop {
+    For(ForLoopSetup, ForLoopCondition, ForLoopStep, LoopBlock),
+    While(WhileLoopCondition, LoopBlock),
+    Loop(LoopBlock),
+    Foreach(ForeachParamters, ForeachLoopTarget, LoopBlock)
+}
+
+pub type ForLoopSetup = FunctionStatement;
+pub type ForLoopCondition = Value;
+pub type ForLoopStep = Value;
+pub type WhileLoopCondition = Value;
+pub type ForeachParamters = FunctionParamters;
+pub type ForeachLoopTarget = Value;
+pub type LoopBlock = FunctionBlock;
+
+#[derive(Debug)]
+pub struct IfCondition(pub Value, pub ConditionBlock);
+
+#[derive(Debug)]
+pub struct ElseCondition(pub ConditionBlock);
+
+pub type ConditionBlock = FunctionBlock;
