@@ -59,6 +59,7 @@ Value
     ::= Identifier
     ::= Array
     ::= Struct
+    ::= "(" Value ")"
 Array ::= "[" (Value ("," Value)*)* "]"
 Struct ::= Identifier* "{" Struct_Column_Pair* "}"
 Struct_Column_Pair ::= Identifier (":" Value)*

@@ -2,10 +2,12 @@ use A.B.C
 
 use D.E.F
 
-type Point {
+type<T> Point {
     x: Int
     y: Int
 }
+
+fn test -> default {}
 
 fn sort array -> default {
     fact ordered =

@@ -26,7 +26,9 @@ pub enum FunctionName {
 
 #[derive(Debug)]
 pub struct FunctionParamters(pub Vec<Paramter>);
-pub type FunctionReturnType = Identifier;
+
+#[derive(Debug)]
+pub struct  FunctionReturnType(pub Identifier, pub Identifier);
 
 #[derive(Debug)]
 pub struct FunctionTypeSetting(pub Vec<FunctionTypeColumn>);

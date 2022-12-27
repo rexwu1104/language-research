@@ -19,6 +19,7 @@ macro_rules! generate_statement {
         match stringify!($type) {
             "import_package" => generate_import_package($tokens.clone(), &mut $states),
             "define_type" => generate_define_type($tokens.clone(), &mut $states),
+            "define_function" => generate_define_function($tokens.clone(), &mut $states),
             _ => break
         }
     };
@@ -35,9 +36,9 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Statement> {
         match (token.clone().ty, state.clone()) {
             (TokenType::Identifier, ParseState::Statement) => {
                 match token.raw.as_str() {
-                    "use" => { state = ParseState::ImportPackage; states.push(state.clone()) },
-                    "type" => { state = ParseState::DefineType; states.push(state.clone()) },
-                    "fn" => { state = ParseState::DefineFunction; states.push(state.clone()) },
+                    "use" => { set_state!(state, states, ImportPackage); },
+                    "type" => { set_state!(state, states, DefineType); },
+                    "fn" => { set_state!(state, states, DefineFunction); },
                     _ => break
                 }
             }, // statement start
@@ -51,10 +52,34 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Statement> {
                 },
                 _ => break
             },
-            (TokenType::Identifier, ParseState::DefineType) => {
+            (TokenType::Identifier | TokenType::Symbol, ParseState::DefineType) => match token.ty {
+                TokenType::Identifier => {
+                    buffer.push(token.clone());
+                    set_state!(state, states, TypeBlock);
+                },
+                TokenType::Symbol => if token.raw != "<" { break } else {
+                    buffer.push(token.clone());
+                    set_state!(state, states, TypeGenericTemplate);
+                },
+                _ => break
+            },
+            (TokenType::Identifier | TokenType::Symbol, ParseState::TypeGenericTemplate) => match token.ty {
+                TokenType::Symbol => if token.raw != ">" && token.raw != "," { break } else if token.raw == ">" {
+                    println!("{token:#?}");
+                    buffer.push(token.clone());
+                    set_state!(state, states, TypeName);
+                } else if get_last!(buffer).raw == "," { break },
+                TokenType::Identifier => if get_last!(buffer).raw == "<" || get_last!(buffer).raw == "," {
+                    println!("{token:#?}");
+                    buffer.push(token.clone());
+                } else { break },
+                _ => break
+            },
+            (TokenType::Identifier, ParseState::TypeName) => {
+                println!("hello");
                 buffer.push(token.clone());
                 set_state!(state, states, TypeBlock);
-            },
+            }
             (TokenType::Symbol, ParseState::TypeBlock) => {
                 if token.raw != "{" { break }
                 set_state!(state, states, TypeCloumnName);
@@ -65,6 +90,7 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Statement> {
                     set_state!(state, states, TypeCloumnType);
                 },
                 TokenType::Symbol => if token.raw != "}" { break } else {
+                    states.pop();
                     statements.push(generate_statement!(define_type, buffer, states));
                     buffer.clear();
                     state = states.iter().last().unwrap().clone();
@@ -79,7 +105,7 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Statement> {
                 },
                 _ => break
             },
-            (TokenType::Identifier, ParseState::DefineFunction) => {
+            (TokenType::Identifier | TokenType::Atom, ParseState::DefineFunction) => {
                 buffer.push(token.clone());
                 set_state!(state, states, FunctionParamters);
             },
@@ -94,13 +120,25 @@ pub fn parse(tokens: Vec<Token>) -> Vec<Statement> {
                 },
                 _ => break
             },
-            (TokenType::Identifier, ParseState::FunctionReturnType) => {
-                buffer.push(token.clone());
-                set_state!(state, states, FunctionBlock);
+            (TokenType::Identifier | TokenType::Symbol, ParseState::FunctionReturnType) => match token.ty {
+                TokenType::Symbol => if token.raw != "{" { break } else {
+                    buffer.push(token.clone());
+                    set_state!(state, states, FunctionBlock);
+                },
+                TokenType::Identifier => {
+                    buffer.push(token.clone());
+                    states.push(state.clone());
+                },
+                _ => break
             },
-            (TokenType::Identifier, ParseState::FunctionBlock) => {
-
-            }
+            (TokenType::Identifier | TokenType::Symbol, ParseState::FunctionBlock) => match token.raw.as_str() {
+                "fn" => { set_state!(state, states, DefineFunction); }, // closure
+                "fact" => { set_state!(state, states, DefineFact); }, // fact
+                "for" | "while" | "loop" => {}, // loop
+                "if" => {}, // codition
+                "}" => { statements.push(generate_statement!(define_function, buffer, states)) },
+                _ => {} // variable or call
+            },
             (TokenType::NewLine, _) => continue,
             _ => break
         }
@@ -115,11 +153,12 @@ enum ParseState {
     ImportPackage,
     DefineType,
     DefineFunction,
-    GenericTemplate,
+    TypeGenericTemplate,
+    TypeName,
     TypeBlock,
     TypeCloumnName,
     TypeCloumnType,
-    FunctionName,
+    FunctionGenericTemplate,
     FunctionParamters,
     FunctionReturnType,
     FunctionTypeSetting,
@@ -154,8 +193,16 @@ fn generate_import_package(tokens: Vec<Token>, states: &mut Vec<ParseState>) -> 
 }
 
 fn generate_define_type(mut tokens: Vec<Token>, states: &mut Vec<ParseState>) -> Statement {
-    let name = tokens[0].clone(); tokens.remove(0); states.remove(1);
+    println!("{states:#?}");
     let mut columns = vec![];
+    let mut generics = vec![];
+    if tokens[0].raw == "<" { for token in tokens.clone() {
+        if token.raw == ">" { tokens.remove(0); break }
+        if token.raw == "<" { tokens.remove(0); continue }
+        generics.push(token.raw.clone()); tokens.remove(0);
+    } states.remove(1); states.remove(1); }
+
+    let name = tokens[0].clone(); tokens.remove(0); states.remove(1);
 
     states.remove(1);
     for column in tokens.chunks(3) {
@@ -164,6 +211,10 @@ fn generate_define_type(mut tokens: Vec<Token>, states: &mut Vec<ParseState>) ->
         columns.push(TypeCloumn(column[0].raw.clone(), column[2].raw.clone()));
     }
 
-    states.remove(1);
-    Statement::DefineType(GenericTemplate(vec![]), name.raw.clone(), TypeBlock(columns))
+    Statement::DefineType(GenericTemplate(generics), name.raw.clone(), TypeBlock(columns))
+}
+
+fn generate_define_function(tokens: Vec<Token>, states: &mut Vec<ParseState>) -> Statement {
+    // println!("{tokens:#?}\n{states:#?}");
+    Statement::ImportPackage(PackagePath(vec![]))
 }

@@ -5,5 +5,5 @@ mod tree;
 mod parser;
 
 fn main() {
-    println!("{:?}", parser::parse(lexer::lex("test.mx")));
+    println!("{:#?}", parser::parse(lexer::lex("test.mx")));
 }
